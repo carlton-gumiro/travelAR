@@ -51,7 +51,7 @@
                     const longitude = position.coords.longitude;
 
                     // Redirect to the desired URL
-                    const url = `/places/nearby?latitude=${latitude}&longitude=${longitude}&term=${encodeURIComponent(term)}`;
+                    const url = `/places/search?latitude=${latitude}&longitude=${longitude}&term=${encodeURIComponent(term)}`;
                     window.location.href = url;
                 }, (error) => {
                     console.error("Error getting location: ", error);

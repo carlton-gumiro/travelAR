@@ -44,7 +44,8 @@ app.get("/route", async (req, res) => {
   res.render("turn_by_turn", {
     steps: destination,
     mylatitude,
-    mylongitude
+    mylongitude,
+    key: process.env.G_API_KEY
   });
 });
 
@@ -54,7 +55,8 @@ app.get("/directions", async (req, res) => {
   const destination = await destination_coordinates(latitude,longitude);
   res.render("directions", {
     destination,
-    name
+    name,
+    key: process.env.G_API_KEY
   });
 });
 

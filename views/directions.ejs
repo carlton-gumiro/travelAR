@@ -15,14 +15,15 @@
         }
     </style>
 
-    <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBa5luEP6TjoRqXXFiY4AoIitG7OUbD3aE"></script>
+    <script src="https://maps.googleapis.com/maps/api/js?key=<%= key %>"></script>
 </head>
 
 <body>
     <div class="sidebar">
         <h2>Step-by-Step Directions</h2>
         <h4>Origin:My Location</h4>
-        <h4>Destination:<%= name %></h4>
+        <h4>Destination:<%= name %>
+        </h4>
         <div id="directions"></div>
     </div>
 
