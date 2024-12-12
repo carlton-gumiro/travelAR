@@ -7,7 +7,7 @@ const { get_places, nearby_places } = require("./controllers/places");
 const { destination_coordinates, directions } = require("./controllers/directions");
 const { long } = require("webidl-conversions");
 
-const port = process.env.PORT || 3000;
+const port = process.env.PORT || 10000;
 
 // Middleware
 
@@ -30,10 +30,7 @@ app.use("/places", require("./routes/places"));
 
 //HomePage
 app.get("/", async (req, res) => {
-  //data = await get_places()
-  //data = await nearby_places();
-  //res.json(data);
-  //res.render('test')
+  
 });
 
 // Route for ar route display
