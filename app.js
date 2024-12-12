@@ -30,7 +30,7 @@ app.use("/places", require("./routes/places"));
 
 //HomePage
 app.get("/", async (req, res) => {
-  
+
 });
 
 // Route for ar route display
@@ -63,6 +63,6 @@ app.get("/places/view", async (req, res) => {
   res.render("places_ar");
 });*/
 
-app.listen(8000, () => {
+app.listen(10000, () => {
   console.log(`Listening on port: ${port}`);
-});
+});s
