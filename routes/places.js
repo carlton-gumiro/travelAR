@@ -1,6 +1,7 @@
 const express = require("express");
 const router = express.Router();
 const { search_by_location, search_by_term, search} = require("../controllers/places");
+require("dotenv").config();
 
 //Get all nearby places to my location
 
@@ -42,6 +43,7 @@ router.get("/nearby", async (req, res) => {
   // Render the response with the returned places
   res.render("home", {
     place: returned_places,
+    key: process.env.G_API_KEY
   });
 });
 
@@ -51,6 +53,7 @@ router.get("", async (req, res) => {
   console.log(allPlaces);
   res.render("home", {
     place: allPlaces,
+    key: process.env.G_API_KEY
   });
 });
 
