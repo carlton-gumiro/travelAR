@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AR Directions</title>
+    <script src="https://aframe.io/releases/1.2.0/aframe.min.js"></script>
+    <script src="https://cdn.rawgit.com/jeromeetienne/AR.js/master/aframe/build/aframe-ar.js"></script>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        #ar-instruction {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            background: white;
+            padding: 10px;
+            border-radius: 5px;
+            z-index: 10;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="ar-instruction">Welcome to AR Directions</div>
+    
+    <a-scene embedded arjs='sourceType: webcam; videoTexture: true; debugUIEnabled: false;'>
+        <a-entity camera></a-entity>
+
+        <!-- Additional AR Content -->
+        <a-entity id="ar-entity"></a-entity>
+    </a-scene>
+
+    <script>
+        const steps = <%- JSON.stringify(steps) %>; // Steps passed from server as JSON
+        let currentStep = 0;
+        console.log(steps)
+
+        // Function to update AR instructions
+        function updateARInstruction(distance) {
+            // Clear previous entities
+            const arEntity = document.getElementById('ar-entity');
+            arEntity.innerHTML = '';
+
+            if (currentStep < steps.length) {
+                const step = steps[currentStep];
+                const instructionText = step.instruction.replace(/<[^>]+>/g, ''); // Remove HTML tags
+console.log(step)
+                // Create text entity for dynamic instructions
+                const textEntity = document.createElement('a-text');
+                textEntity.setAttribute('value', `${instructionText} - ${distance.toFixed(2)} meters away`);
+                textEntity.setAttribute('color', 'black');
+                textEntity.setAttribute('scale', '1 1 1');
+                textEntity.setAttribute('position', "-2 1 -9"); // Adjust position as needed
+                textEntity.setAttribute('look-at', '[camera]');
+                arEntity.appendChild(textEntity);
+
+                // Create arrow entity based on direction
+                const arrowEntity = document.createElement('a-image');
+                arrowEntity.setAttribute('scale', '2 2 2');
+                arrowEntity.setAttribute('position', "0 1 -25"); // Adjust position as needed
+
+                // Set icon based on instruction
+                if (instructionText.toLowerCase().includes("straight")) {
+                    arrowEntity.setAttribute('src', 'forward.png');
+                } else if (instructionText.toLowerCase().includes("left")) {
+                    arrowEntity.setAttribute('src', 'turn-left.png'); 
+                } else if (instructionText.toLowerCase().includes("right")) {
+                    arrowEntity.setAttribute('src', 'turn-right.png'); 
+                } else {
+                    arrowEntity.setAttribute('src', 'forward.png'); 
+                }
+
+                arrowEntity.setAttribute('look-at', '[camera]'); // Make the arrow look at the camera
+                arEntity.appendChild(arrowEntity);
+            } else {
+                // Reached the last step
+                const lastInstructionText = "You have reached your destination!";
+                const lastTextEntity = document.createElement('a-text');
+                lastTextEntity.setAttribute('value', lastInstructionText);
+                lastTextEntity.setAttribute('color', 'black');
+                lastTextEntity.setAttribute('scale', '2 2 2');
+                lastTextEntity.setAttribute('position', "1 1 -9"); // Adjust position as needed for visibility
+                lastTextEntity.setAttribute('look-at', '[camera]');
+                arEntity.appendChild(lastTextEntity);
+
+                const lastArrowEntity = document.createElement('a-image');
+                lastArrowEntity.setAttribute('src', 'arrival.png'); 
+                lastArrowEntity.setAttribute('scale', '2 2 2');
+                lastArrowEntity.setAttribute('position', "1 1 -8"); // Adjust position as needed for visibility
+                lastArrowEntity.setAttribute('look-at', '[camera]');
+                arEntity.appendChild(lastArrowEntity);
+
+                setTimeout(() => {
+                    window.location.href = "/places"; // Redirect after 30 seconds
+                }, 30000);
+            }
+        }
+
+        function checkLocationAndUpdate() {
+            navigator.geolocation.getCurrentPosition(position => {
+                const userLat = position.coords.latitude;
+                const userLng = position.coords.longitude;
+                const stepEndLocation = steps[currentStep].end_location;
+
+                const distance = haversineDistance(userLat, userLng, stepEndLocation.lat, stepEndLocation.lng);
+
+                // Check if user is within 3 meters of the current step's end location
+                if (distance <= 3) {
+                    currentStep++;
+                    updateARInstruction(distance); // Update with new distance
+                } else {
+                    updateARInstruction(distance); // Update instruction even if we are not close enough
+                }
+            });
+        }
+
+        function haversineDistance(lat1, lon1, lat2, lon2) {
+            const R = 6371e3; // meters
+            const φ1 = lat1 * Math.PI / 180;
+            const φ2 = lat2 * Math.PI / 180;
+            const Δφ = (lat2 - lat1) * Math.PI / 180;
+            const Δλ = (lon2 - lon1) * Math.PI / 180;
+
+            const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                      Math.cos(φ1) * Math.cos(φ2) *
+                      Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+            return R * c; // in meters
+        }
+
+        setInterval(checkLocationAndUpdate, 5000); // Check location every 5 seconds
+        window.onload = function() {
+            updateARInstruction(0); // Initial instruction update with 0 distance
+        };
+    </script>
+</body>
+
+</html>

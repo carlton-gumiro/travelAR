@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home</title>
+    <link rel="stylesheet" href="/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css">
+</head>
+
+<body>
+    <header>
+        <nav class="navbar">
+            <div class="nav-left">
+                <h1>Travel Advisor</h1>
+            </div>
+            <div class="nav-center">
+                <form id="search-form" onsubmit="return handleSearch(event)">
+                    <input type="search" name="term" placeholder="Search for places..." required>
+                    <button type="submit">Search</button>
+                </form>
+            </div>
+            <div class="nav-right">
+                <button><i class="fas fa-cog"></i></button>
+                <button><i class="fas fa-power-off"></i></button>
+                <button class="hamburger" onclick="toggleMenu()"><i class="fas fa-bars"></i></button>
+            </div>
+        </nav>
+        <div class="mobile-menu" id="mobile-menu">
+            <button><i class="fas fa-cog"></i></button>
+            <button><i class="fas fa-power-off"></i></button>
+        </div>
+    </header>
+
+    <script>
+        function toggleMenu() {
+            const menu = document.getElementById('mobile-menu');
+            menu.style.display = menu.style.display === 'flex' ? 'none' : 'flex';
+        }
+
+        function handleSearch(event) {
+            event.preventDefault(); // Prevent the form from submitting normally
+
+            const term = event.target.term.value; // Get the search term
+
+            // Get the user's current location
+            if (navigator.geolocation) {
+                navigator.geolocation.getCurrentPosition((position) => {
+                    const latitude = position.coords.latitude;
+                    const longitude = position.coords.longitude;
+
+                    // Redirect to the desired URL
+                    const url = `/places/nearby?latitude=${latitude}&longitude=${longitude}&term=${encodeURIComponent(term)}`;
+                    window.location.href = url;
+                }, (error) => {
+                    console.error("Error getting location: ", error);
+                    alert("Unable to retrieve your location. Please check your location settings.");
+                });
+            } else {
+                alert("Geolocation is not supported by this browser.");
+            }
+        }
+    </script>
+</body>
+
+</html>

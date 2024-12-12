@@ -1,0 +1,192 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+
+  <title>Travel Advisor</title>
+  <link rel="stylesheet" href="styles.css">
+
+  <style>
+    #map {}
+  </style>
+
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBa5luEP6TjoRqXXFiY4AoIitG7OUbD3aE"></script>
+</head>
+
+<body>
+  <%- include('partials/navbar') %>
+
+    <div class="container">
+      <!-- Sidebar UI -->
+      <div class="sidebar">
+        <h2>Places Around You</h2>
+
+        <div class="places_container">
+          <!-- Places will be dynamically added here -->
+        </div>
+      </div>
+
+      <!-- Map UI -->
+      <div class="map-container">
+        <div id="map"></div>
+
+        <script>
+          let map;
+
+          // Function to create star rating HTML
+          function generateStarRating(rating) {
+            let stars = '';
+            for (let i = 1; i <= 5; i++) {
+              stars += (i <= rating) ? '★' : '☆'; // Filled or empty star
+            }
+            return stars;
+          }
+
+          function initMap() {
+            // Attempt to get the user's current location
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition((position) => {
+                const userLocation = {
+                  lat: position.coords.latitude,
+                  lng: position.coords.longitude
+                };
+
+                // Initialize the map centered at the user's location
+                map = new google.maps.Map(document.getElementById('map'), {
+                  zoom: 14,
+                  center: userLocation,
+                  disableDefaultUI: true
+                });
+
+                // Add a marker for the user's location
+                new google.maps.Marker({
+                  position: userLocation,
+                  map: map,
+                  title: "You are here"
+                });
+
+                // Fetch and display nearby places based on user's location
+                fetchNearbyPlaces(userLocation.lat, userLocation.lng);
+              }, () => {
+                handleLocationError(true);
+              });
+            } else {
+              // Browser doesn't support geolocation
+              handleLocationError(false);
+            }
+          }
+
+          function handleLocationError(browserHasGeolocation) {
+            const defaultLocation = { lat: -17.8292, lng: 31.0522 }; // Fallback location (Harare)
+            map = new google.maps.Map(document.getElementById('map'), {
+              zoom: 14,
+              center: defaultLocation,
+              disableDefaultUI: true
+            });
+            alert(browserHasGeolocation ?
+              "Error: The Geolocation service has failed. Try reloading the page or enabling precise location on your device." :
+              "Error: Your browser doesn't support geolocation.");
+          }
+
+          function fetchNearbyPlaces(latitude, longitude) {
+            fetch(`/places/nearby?latitude=${latitude}&longitude=${longitude}`)
+              .then(response => response.json())
+              .then(data => {
+                const places = data.results; // Adjust according to your API response
+
+                // Clear existing places in the sidebar
+                const placesContainer = document.querySelector('.places_container');
+                placesContainer.innerHTML = ''; // Clear existing places
+
+                // Update sidebar and markers
+                places.forEach((place, index) => {
+                  // Create a card for the sidebar
+                  const card = document.createElement('div');
+                  card.className = 'card';
+                  card.innerHTML = `
+                  <img src="${place.photoUrl}" alt="${place.name}" />
+                  <div>
+                    <h2>${place.name}</h2>
+                    <span>${place.open_now ? 'OPEN NOW' : 'CLOSED'}</span>
+                  </div>
+                  <div class="rating">
+                    <span>${generateStarRating(place.rating)}</span>
+                    </br>
+                    <span>${place.reviews} reviews</span>
+                  </div>
+                  <p>Category: ${place.first_type}</p>
+                  <p><i class="fas fa-map-marker-alt"></i>${place.formatted_address}</p>
+                  <button onclick="redirectToDirections(${place.latitude}, ${place.longitude}, '${encodeURIComponent(place.name)}')">Directions</button>
+                  <button onclick="showRoute(${place.latitude}, ${place.longitude}, '${encodeURIComponent(place.name)}')">Show Route</button>
+                  `;
+                  placesContainer.appendChild(card);
+
+                  // Place a marker for each result
+                  const marker = new google.maps.Marker({
+                    position: { lat: place.latitude, lng: place.longitude },
+                    map: map,
+                    title: place.name,
+                    icon: { url: "http://maps.google.com/mapfiles/ms/icons/blue-dot.png" } // Set blue marker
+                  });
+
+                  // Create content for the info window
+                  const contentString = `
+                  <h3>${place.name}</h3>
+                  <p>${place.formatted_address}</p>
+                  <p>Rating: ${generateStarRating(place.rating)}</p>
+                  <button onclick="showPlaceInSidebar(${index})">Show Details</button>
+                `;
+
+                  const infowindow = new google.maps.InfoWindow({
+                    content: contentString
+                  });
+
+                  marker.addListener('click', () => {
+                    infowindow.open(map, marker);
+                  });
+                });
+              })
+              .catch(error => {
+                console.error('Error fetching nearby places:', error);
+              });
+          }
+
+          function redirectToDirections(latitude, longitude, name) {
+            const url = `/directions?latitude=${latitude}&longitude=${longitude}&name=${name}`;
+            window.location.href = url; // Redirect to the URL
+          }
+
+          function showRoute(latitude, longitude, name) {
+            // Get the user's current location
+            if (navigator.geolocation) {
+              navigator.geolocation.getCurrentPosition((position) => {
+                const myLatitude = position.coords.latitude;
+                const myLongitude = position.coords.longitude;
+
+                // Construct the URL with user's and destination's coordinates
+                const url = `/route?latitude=${latitude}&longitude=${longitude}&mylatitude=${myLatitude}&mylongitude=${myLongitude}&name=${encodeURIComponent(name)}`;
+                window.location.href = url; // Redirect to the URL
+              }, (error) => {
+                console.error("Error getting location: ", error);
+                alert("Unable to retrieve your location. Please check your location settings.");
+              });
+            } else {
+              // Handle the case where geolocation is not supported
+              alert("Geolocation is not supported by this browser.");
+            }
+          }
+          // Initialize the map when the window loads
+          window.onload = initMap;
+
+          // Optional function to show details in sidebar
+          function showPlaceInSidebar(index) {
+            const places = <%- JSON.stringify(place) %>;
+            const selectedPlace = places[index];
+            alert(`Showing details for: ${selectedPlace.name}`);
+          }
+        </script>
+      </div>
+    </div>
+</body>
+
+</html>
