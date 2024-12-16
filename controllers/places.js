@@ -37,7 +37,7 @@ async function search_by_location(latitude, longitude, radius,res,req) {
       };
     });
 
-    console.log(Object.entries(formattedPlaces).length);
+    //console.log(Object.entries(formattedPlaces).length);
     res.json({ results: formattedPlaces, status: response.data.status });
   } catch (error) {
     console.error(error);
@@ -88,7 +88,7 @@ async function search_by_term(latitude, longitude, query, radius) {
       };
     });
 
-    console.log(filteredResults);
+    //console.log(filteredResults);
     //console.log(Object.entries(filteredResults).length);
     return filteredResults;
   } catch (error) {
@@ -141,8 +141,8 @@ async function search() {
       };
     });
 
-    console.log(filteredResults);
-    console.log(Object.entries(filteredResults).length);
+    //console.log(filteredResults);
+    //console.log(Object.entries(filteredResults).length);
     return filteredResults;
   } catch (error) {
     console.error(error);

@@ -29,19 +29,15 @@ app.use("/", require("./routes/auth"));
 app.use("/places", require("./routes/places"));
 
 //HomePage
-/*
 app.get("/", async (req, res) => {
-  //data = await get_places()
-  //data = await nearby_places();
-  res.json(data);
-  //res.render('test')
-});*/
+  res.render('login')
+});
 
 // Route for ar route display
 app.get("/route", async (req, res) => {
   const {latitude , longitude, mylatitude, mylongitude } = req.query
   const destination = await directions(latitude,longitude,mylatitude,mylongitude);
-  //console.log(destination)
+  console.log(destination)
   res.render("turn_by_turn", {
     steps: destination,
     mylatitude,
